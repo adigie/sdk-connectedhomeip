@@ -1,0 +1,17 @@
+CompileFlags:
+  Add: []
+  #-Wno-unknown-warning-option,
+  #-ferror-limit=0,
+  #-D_SYS_SELECT_H,
+  #-DCHIP_DEVICE_CONFIG_ENABLE_THREAD_SRP_CLIENT=1,
+  #-DCHIP_DEVICE_CONFIG_THREAD_FTD=1,
+  #-DCHIP_DEVICE_CONFIG_ENABLE_WIFI=1,
+  #-I/home/adgi/ncs/main/modules/lib/matter/src/include/,
+  #-I/home/adgi/ncs/main/modules/lib/matter/src/,
+  #Remove: [-mfp16-format=ieee, -fno-reorder-functions]
+  CompilationDatabase: ./
+  Remove: [-fno-freestanding, -fno-reorder-functions]
+Diagnostics:
+  UnusedIncludes: Strict
+  #Suppress:
+  #  - drv_unknown_argument
