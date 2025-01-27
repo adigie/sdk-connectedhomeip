@@ -167,11 +167,11 @@ class NrfConnectBuilder(Builder):
                 zephyr_sdk_dir = os.environ.get('ZEPHYR_SDK_INSTALL_DIR') or os.path.join(
                     os.environ['NRF5_TOOLS_ROOT'], 'zephyr-sdk-0.16.1')
 
-                # NRF builds will both try to change .west/config in nrfconnect and
-                # overall perform a git fetch on that location
-                if not os.access(nrfconnect_sdk, os.W_OK):
-                    raise Exception(
-                        "Directory %s not writable. NRFConnect builds require updates to this directory." % nrfconnect_sdk)
+                # # NRF builds will both try to change .west/config in nrfconnect and
+                # # overall perform a git fetch on that location
+                # if not os.access(nrfconnect_sdk, os.W_OK):
+                #     raise Exception(
+                #         "Directory %s not writable. NRFConnect builds require updates to this directory." % nrfconnect_sdk)
 
                 # validate the the ZEPHYR_BASE is up to date (generally the case in docker images)
                 try:
