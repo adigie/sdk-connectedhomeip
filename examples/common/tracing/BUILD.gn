@@ -94,6 +94,7 @@ source_set("trace_handlers_decoder") {
   public_configs = [ ":default_config" ]
 
   deps = [
+    "${chip_root}/src/app/common:cluster-objects",
     "${chip_root}/src/lib",
     "${chip_root}/src/lib/core:types",
   ]
@@ -120,7 +121,10 @@ executable("chip-trace-decoder") {
 
   output_dir = root_out_dir
 
-  deps = [ "${chip_root}/src/platform/logging:stdio" ]
+  deps = [
+    "${chip_root}/src/app/common:cluster-objects",
+    "${chip_root}/src/platform/logging:stdio",
+  ]
 
   public_deps = [
     "${chip_root}/src/lib",

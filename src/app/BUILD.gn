@@ -409,6 +409,10 @@ source_set("command-handler-impl") {
     "CommandHandlerImpl.h",
   ]
 
+  deps = [
+    "${chip_root}/src/app/common:cluster-objects",
+  ]
+
   public_deps = [
     ":command-handler-interface",
     ":paths",

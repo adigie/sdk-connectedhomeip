@@ -49,6 +49,10 @@ static_library("server") {
 
   cflags = [ "-Wconversion" ]
 
+  deps = [
+    "${chip_root}/src/app/common:cluster-objects",
+  ]
+
   public_deps = [
     "${chip_root}/src/app",
     "${chip_root}/src/app:test-event-trigger",

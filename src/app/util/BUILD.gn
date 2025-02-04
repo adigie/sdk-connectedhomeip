@@ -62,6 +62,11 @@ source_set("af-types") {
     "${chip_root}/src/messaging",
     "${chip_root}/src/protocols/interaction_model",
   ]
+
+  public_deps = [
+    "${chip_root}/src/app/common:cluster-objects",
+  ]
+
 }
 
 source_set("callbacks") {

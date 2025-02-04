@@ -529,9 +529,11 @@ if (chip_device_platform != "none") {
 
     public_deps = [
       ":platform_base",
-      "${chip_root}/src/app/common:cluster-objects",
+      "${chip_root}/src/app/common:ids",
+      "${chip_root}/src/app/data-model",
       "${chip_root}/src/crypto",
       "${chip_root}/src/lib/support",
+      "${chip_root}/src/protocols/interaction_model",
     ]
 
     if (chip_device_platform == "cc13x4_26x4") {

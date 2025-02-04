@@ -101,6 +101,7 @@ source_set("manager") {
     "${chip_root}/src/credentials:credentials",
     "${chip_root}/src/lib/address_resolve:address_resolve",
     "${chip_root}/src/messaging",
+    "${chip_root}/src/app:app_config",
   ]
 
   if (chip_enable_icd_checkin) {
@@ -108,7 +109,6 @@ source_set("manager") {
       ":check-in-back-off",
       ":monitoring-table",
       ":sender",
-      "${chip_root}/src/app:app_config",
     ]
   }
 }
