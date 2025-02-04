@@ -18,8 +18,9 @@
 #pragma once
 
 #include <app/ConcreteAttributePath.h>
-#include <app/util/af-types.h>
+#include <app/util/AttributesChangedListener.h>
 #include <app/util/attribute-metadata.h>
+#include <app/util/mark_attribute_dirty.h>
 #include <lib/core/DataModelTypes.h>
 #include <protocols/interaction_model/StatusCode.h>
 
