@@ -43,6 +43,9 @@ static_library("server") {
     "EchoHandler.h",
     "Server.cpp",
     "Server.h",
+    "ServerImpl.cpp",
+    "ServerImpl.h",
+    "ServerInitParams.h",
   ]
 
   public_configs = [ ":server_config" ]

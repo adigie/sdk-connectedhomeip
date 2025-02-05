@@ -25,6 +25,7 @@
 #include <app/AttributeAccessInterfaceRegistry.h>
 #include <app/CommandHandler.h>
 #include <app/ConcreteCommandPath.h>
+#include <app/FailSafeContext.h>
 #include <app/server/CommissioningWindowManager.h>
 #include <app/server/Server.h>
 #include <app/util/attribute-storage.h>
