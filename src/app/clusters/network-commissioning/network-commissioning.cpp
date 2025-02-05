@@ -25,6 +25,7 @@
 #include <app/AttributeAccessInterfaceRegistry.h>
 #include <app/CommandHandlerInterface.h>
 #include <app/CommandHandlerInterfaceRegistry.h>
+#include <app/FailSafeContext.h>
 #include <app/clusters/general-commissioning-server/general-commissioning-server.h>
 #include <app/data-model/Nullable.h>
 #include <app/reporting/reporting.h>

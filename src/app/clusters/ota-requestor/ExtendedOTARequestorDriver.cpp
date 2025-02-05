@@ -18,6 +18,7 @@
 #include "ExtendedOTARequestorDriver.h"
 #include "OTARequestorInterface.h"
 #include <app/server/Server.h>
+#include <credentials/FabricTable.h>
 #include <platform/DeviceInstanceInfoProvider.h>
 
 namespace chip {
