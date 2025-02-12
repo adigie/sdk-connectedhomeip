@@ -61,8 +61,8 @@
 #include <ti/drivers/apps/LED.h>
 
 #if CHIP_CONFIG_ENABLE_ICD_UAT
-#include "app/icd/server/ICDNotifier.h"
-#endif
+#include "app/icd/server/ICDNotifier.h" // nogncheck
+#end
 
 /* syscfg */
 #include <ti_drivers_config.h>
