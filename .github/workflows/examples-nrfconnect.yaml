@@ -21,6 +21,11 @@ on:
             - 'v*-branch'
     pull_request:
     merge_group:
+    workflow_dispatch:
+        inputs:
+            ncs_commit:
+                description: "NCS commit SHA"
+                required: true
 
 concurrency:
     group: ${{ github.ref }}-${{ github.workflow }}-${{ (github.event_name == 'pull_request' && github.event.number) || (github.event_name == 'workflow_dispatch' && github.run_number) || github.sha }}
@@ -42,7 +47,12 @@ jobs:
         steps:
             - name: Checkout
               uses: actions/checkout@v4
-            - name: Update NCS recommended version
+            - name: Update NCS recommended version (workflow_dispatch)
+              if: github.event_name == 'workflow_dispatch'
+              run: |
+                  echo "Using NCS revision ${{ github.event.inputs.ncs_commit }}"
+                  echo "${{ github.event.inputs.commit }}" > config/nrfconnect/.nrfconnect-recommended-revision
+            - name: Update NCS recommended version (pull_request)
               if: github.event_name == 'pull_request'
               run: |
                   PR_DESCRIPTION="${{ github.event.pull_request.body }}"
