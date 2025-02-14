@@ -69,6 +69,7 @@ public:
 
     void SetAddNocCommandInvoked(FabricIndex nocFabricIndex)
     {
+        printk("************ AG: SetAddNocCommandInvoked\n");
         mAddNocCommandHasBeenInvoked = true;
         mFabricIndex                 = nocFabricIndex;
     }
