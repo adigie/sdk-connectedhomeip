@@ -107,6 +107,7 @@ void FailSafeContext::HandleDisarmFailSafe(intptr_t arg)
 
 void FailSafeContext::SetFailSafeArmed(bool armed)
 {
+    printk("************ AG: SetFailSafeArmed: %d\n", armed);
 #if CHIP_CONFIG_ENABLE_ICD_SERVER
     if (IsFailSafeArmed() != armed)
     {
@@ -131,6 +132,7 @@ void FailSafeContext::FailSafeTimerExpired()
 
 void FailSafeContext::ScheduleFailSafeCleanup(FabricIndex fabricIndex, bool addNocCommandInvoked, bool updateNocCommandInvoked)
 {
+    printk("************ AG: ScheduleFailSafeCleanup\n");
     // Not armed, but busy so cannot rearm (via General Commissioning cluster) until the flushing
     // via `HandleDisarmFailSafe` path is complete.
     // TODO: This is hacky and we need to remove all this event pushing business, to keep all fail-safe logic-only.
@@ -154,6 +156,7 @@ void FailSafeContext::ScheduleFailSafeCleanup(FabricIndex fabricIndex, bool addN
 
 CHIP_ERROR FailSafeContext::ArmFailSafe(FabricIndex accessingFabricIndex, System::Clock::Seconds16 expiryLengthSeconds)
 {
+    printk("************ AG: ArmFailSafe, index: %d, expiryLengthSeconds: %u\n", accessingFabricIndex, expiryLengthSeconds.count());
     VerifyOrReturnError(!IsFailSafeBusy(), CHIP_ERROR_INCORRECT_STATE);
 
     CHIP_ERROR err           = CHIP_NO_ERROR;
@@ -183,6 +186,7 @@ exit:
 
 void FailSafeContext::DisarmFailSafe()
 {
+    printk("************ AG: DisarmFailSafe\n");
     DeviceLayer::SystemLayer().CancelTimer(HandleArmFailSafeTimer, this);
     DeviceLayer::SystemLayer().CancelTimer(HandleMaxCumulativeFailSafeTimer, this);
 

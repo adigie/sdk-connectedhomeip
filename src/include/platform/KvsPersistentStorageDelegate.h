@@ -52,6 +52,7 @@ public:
 
     CHIP_ERROR SyncGetKeyValue(const char * key, void * buffer, uint16_t & size) override
     {
+        printk("************ AG: SyncGetKeyValue %s\n", key);
         VerifyOrReturnError(mKvsManager != nullptr, CHIP_ERROR_INCORRECT_STATE);
 
         uint8_t emptyPlaceholder = 0;
@@ -80,6 +81,7 @@ public:
 
     CHIP_ERROR SyncSetKeyValue(const char * key, const void * value, uint16_t size) override
     {
+        printk("************ AG: SyncSetKeyValue %s\n", key);
         VerifyOrReturnError(mKvsManager != nullptr, CHIP_ERROR_INCORRECT_STATE);
 
         uint8_t placeholderForEmpty = 0;
@@ -99,6 +101,7 @@ public:
 
     CHIP_ERROR SyncDeleteKeyValue(const char * key) override
     {
+        printk("************ AG: SyncDeleteKeyValue %s\n", key);
         VerifyOrReturnError(mKvsManager != nullptr, CHIP_ERROR_INCORRECT_STATE);
         return mKvsManager->Delete(key);
     }
