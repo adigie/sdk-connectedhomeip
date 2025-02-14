@@ -166,6 +166,7 @@ void FabricInfo::operator=(FabricInfo && other)
 
 CHIP_ERROR FabricInfo::CommitToStorage(PersistentStorageDelegate * storage) const
 {
+    printk("************ AG: CommitToStorage\n");
     {
         uint8_t buf[MetadataTLVMaxSize()];
         TLV::TLVWriter writer;
@@ -194,6 +195,7 @@ CHIP_ERROR FabricInfo::CommitToStorage(PersistentStorageDelegate * storage) cons
 CHIP_ERROR FabricInfo::LoadFromStorage(PersistentStorageDelegate * storage, FabricIndex newFabricIndex, const ByteSpan & rcac,
                                        const ByteSpan & noc)
 {
+    printk("************ AG: LoadFromStorage\n");
     mFabricIndex = newFabricIndex;
 
     // Regenerate operational metadata from NOC/RCAC
@@ -691,6 +693,7 @@ CHIP_ERROR FabricTable::StoreFabricMetadata(const FabricInfo * fabricInfo) const
 
 CHIP_ERROR FabricTable::LoadFromStorage(FabricInfo * fabric, FabricIndex newFabricIndex)
 {
+    printk("************ AG: FabricTable::LoadFromStorage index: %u\n", newFabricIndex);
     VerifyOrReturnError(mStorage != nullptr, CHIP_ERROR_INVALID_ARGUMENT);
     VerifyOrReturnError(!fabric->IsInitialized(), CHIP_ERROR_INCORRECT_STATE);
 
@@ -703,6 +706,12 @@ CHIP_ERROR FabricTable::LoadFromStorage(FabricInfo * fabric, FabricIndex newFabr
     if (err == CHIP_NO_ERROR)
     {
         err = FetchRootCert(newFabricIndex, rcacSpan);
+    }
+
+    if (err != CHIP_NO_ERROR)
+    {
+        printk("************ AG: FabricTable::LoadFromStorage FetchNOC/Root failed, index: %u, err: %" CHIP_ERROR_FORMAT "\n",
+               newFabricIndex, err.Format());
     }
 
     // TODO(#19935): Sweep-away fabrics without RCAC/NOC by deleting everything and marking fabric gone.
@@ -1072,6 +1081,8 @@ void FabricTable::DeleteAllFabrics()
 
 CHIP_ERROR FabricTable::Init(const FabricTable::InitParams & initParams)
 {
+    printk("************ AG: FabricTable::Init\n");
+
     VerifyOrReturnError(initParams.storage != nullptr, CHIP_ERROR_INVALID_ARGUMENT);
     VerifyOrReturnError(initParams.opCertStore != nullptr, CHIP_ERROR_INVALID_ARGUMENT);
 
@@ -1114,6 +1125,7 @@ CHIP_ERROR FabricTable::Init(const FabricTable::InitParams & initParams)
         err = ReadFabricInfo(reader);
         if (err != CHIP_NO_ERROR)
         {
+            printk("************ AG: FabricTable::Init ReadFabricInfo failed\n");
             ChipLogError(FabricProvisioning, "Error loading fabric table: %" CHIP_ERROR_FORMAT ", we are in a bad state!",
                          err.Format());
         }
@@ -1131,11 +1143,13 @@ CHIP_ERROR FabricTable::Init(const FabricTable::InitParams & initParams)
 
         mDeletedFabricIndexFromInit = commitMarker.fabricIndex;
 
+        printk("************ AG: FabricTable::Init commit found, Delete\n");
         // Can't do better on error. We just have to hope for the best.
         (void) Delete(commitMarker.fabricIndex);
     }
     else if (err != CHIP_ERROR_PERSISTED_STORAGE_VALUE_NOT_FOUND)
     {
+        printk("************ AG: FabricTable::Init GetCommitMarker failed\n");
         // Got an error, but somehow value is not missing altogether: inconsistent state but touch nothing.
         ChipLogError(FabricProvisioning, "Error loading Table commit marker: %" CHIP_ERROR_FORMAT ", hope for the best!",
                      err.Format());
@@ -1370,6 +1384,7 @@ void FabricTable::EnsureNextAvailableFabricIndexUpdated()
 
 CHIP_ERROR FabricTable::ReadFabricInfo(TLV::ContiguousBufferTLVReader & reader)
 {
+    printk("************ AG: FabricTable::ReadFabricInfo\n");
     ReturnErrorOnFailure(reader.Next(TLV::kTLVType_Structure, TLV::AnonymousTag()));
     TLV::TLVType containerType;
     ReturnErrorOnFailure(reader.EnterContainer(containerType));
@@ -1388,6 +1403,7 @@ CHIP_ERROR FabricTable::ReadFabricInfo(TLV::ContiguousBufferTLVReader & reader)
     TLV::TLVType arrayType;
     ReturnErrorOnFailure(reader.EnterContainer(arrayType));
 
+    printk("************ AG: FabricTable::ReadFabricInfo, while\n");
     CHIP_ERROR err;
     while ((err = reader.Next()) == CHIP_NO_ERROR)
     {
@@ -1401,6 +1417,7 @@ CHIP_ERROR FabricTable::ReadFabricInfo(TLV::ContiguousBufferTLVReader & reader)
         FabricIndex currentFabricIndex = kUndefinedFabricIndex;
         ReturnErrorOnFailure(reader.Get(currentFabricIndex));
 
+        printk("************ AG: FabricTable::ReadFabricInfo, while LoadFromStorage: %u\n", currentFabricIndex);
         err = LoadFromStorage(&fabric, currentFabricIndex);
         if (err == CHIP_NO_ERROR)
         {
@@ -1453,6 +1470,7 @@ void FabricTable::ReleaseEphemeralKeypair(Crypto::P256Keypair * keypair)
 
 CHIP_ERROR FabricTable::StoreCommitMarker(const CommitMarker & commitMarker)
 {
+    printk("************ AG: StoreCommitMarker: index: %d, addition: %d\n", commitMarker.fabricIndex, commitMarker.isAddition);
     uint8_t tlvBuf[CommitMarkerContextTLVMaxSize()];
     TLV::TLVWriter writer;
     writer.Init(tlvBuf);
@@ -1472,6 +1490,7 @@ CHIP_ERROR FabricTable::StoreCommitMarker(const CommitMarker & commitMarker)
 
 CHIP_ERROR FabricTable::GetCommitMarker(CommitMarker & outCommitMarker)
 {
+    printk("************ AG: GetCommitMarker\n");
     uint8_t tlvBuf[CommitMarkerContextTLVMaxSize()];
     uint16_t tlvSize = sizeof(tlvBuf);
     ReturnErrorOnFailure(
@@ -1494,11 +1513,13 @@ CHIP_ERROR FabricTable::GetCommitMarker(CommitMarker & outCommitMarker)
     // Don't try to exit container: we got all we needed. This allows us to
     // avoid erroring-out on newer versions.
 
+    printk("************ AG: GetCommitMarker: index: %d, addition: %d\n", outCommitMarker.fabricIndex, outCommitMarker.isAddition);
     return CHIP_NO_ERROR;
 }
 
 void FabricTable::ClearCommitMarker()
 {
+    printk("************ AG: ClearCommitMarker\n");
     mStorage->SyncDeleteKeyValue(DefaultStorageKeyAllocator::FabricTableCommitMarkerKey().KeyName());
 }
 
@@ -1827,6 +1848,7 @@ CHIP_ERROR FabricTable::UpdatePendingFabricCommon(FabricIndex fabricIndex, const
 
 CHIP_ERROR FabricTable::CommitPendingFabricData()
 {
+    printk("************ AG: CommitPendingFabricData\n");
     VerifyOrReturnError((mStorage != nullptr) && (mOpCertStore != nullptr), CHIP_ERROR_INCORRECT_STATE);
 
     bool haveNewTrustedRoot      = mStateFlags.Has(StateFlags::kIsTrustedRootPending);
