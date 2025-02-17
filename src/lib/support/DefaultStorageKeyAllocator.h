@@ -104,6 +104,7 @@ public:
     static StorageKeyName FabricTableCommitMarkerKey() { return StorageKeyName::FromConst("g/fs/c"); }
 
     // Fail-safe handling
+    static StorageKeyName FailSafeCommitMarkerKey() { return StorageKeyName::FromConst("g/fs/cm"); }
     static StorageKeyName FailSafeNetworkConfig() { return StorageKeyName::FromConst("g/fs/n"); }
 
     // LastKnownGoodTime

@@ -960,6 +960,7 @@ FabricTable::AddOrUpdateInner(FabricIndex fabricIndex, bool isAddition, Crypto::
 
 CHIP_ERROR FabricTable::Delete(FabricIndex fabricIndex)
 {
+    printk("************ AG: FabricTable::Delete index: %u, start\n", fabricIndex);
     MATTER_TRACE_SCOPE("Delete", "Fabric");
     VerifyOrReturnError(mStorage != nullptr, CHIP_ERROR_INVALID_ARGUMENT);
     VerifyOrReturnError(IsValidFabricIndex(fabricIndex), CHIP_ERROR_INVALID_ARGUMENT);
@@ -975,6 +976,7 @@ CHIP_ERROR FabricTable::Delete(FabricIndex fabricIndex)
             delegate = nextDelegate;
         }
     }
+    printk("************ AG: FabricTable::Delete index: %u, 1\n", fabricIndex);
 
     FabricInfo * fabricInfo = GetMutableFabricByIndex(fabricIndex);
     if (fabricInfo == &mPendingFabric)
@@ -984,6 +986,8 @@ CHIP_ERROR FabricTable::Delete(FabricIndex fabricIndex)
         RevertPendingFabricData();
         fabricInfo = GetMutableFabricByIndex(fabricIndex);
     }
+
+    printk("************ AG: FabricTable::Delete index: %u, 2\n", fabricIndex);
 
     bool fabricIsInitialized = fabricInfo != nullptr && fabricInfo->IsInitialized();
     CHIP_ERROR metadataErr   = DeleteMetadataFromStorage(fabricIndex); // Delete from storage regardless
@@ -999,6 +1003,7 @@ CHIP_ERROR FabricTable::Delete(FabricIndex fabricIndex)
             opKeyErr = CHIP_NO_ERROR;
         }
     }
+    printk("************ AG: FabricTable::Delete index: %u, 3\n", fabricIndex);
 
     CHIP_ERROR opCertsErr = CHIP_NO_ERROR;
     if (mOpCertStore != nullptr)
@@ -1011,6 +1016,7 @@ CHIP_ERROR FabricTable::Delete(FabricIndex fabricIndex)
             opCertsErr = CHIP_NO_ERROR;
         }
     }
+    printk("************ AG: FabricTable::Delete index: %u, 4\n", fabricIndex);
 
     if (!fabricIsInitialized)
     {
@@ -1018,10 +1024,12 @@ CHIP_ERROR FabricTable::Delete(FabricIndex fabricIndex)
         // chose to return.
         return CHIP_ERROR_NOT_FOUND;
     }
+    printk("************ AG: FabricTable::Delete index: %u, 5\n", fabricIndex);
 
     // Since fabricIsInitialized was true, fabric is not null.
     fabricInfo->Reset();
 
+    printk("************ AG: FabricTable::Delete index: %u, 6\n", fabricIndex);
     if (!mNextAvailableFabricIndex.HasValue())
     {
         // We must have been in a situation where CHIP_CONFIG_MAX_FABRICS is 254
@@ -1046,6 +1054,49 @@ CHIP_ERROR FabricTable::Delete(FabricIndex fabricIndex)
         mFabricCount--;
         ChipLogProgress(FabricProvisioning, "Fabric (0x%x) deleted.", static_cast<unsigned>(fabricIndex));
     }
+    printk("************ AG: FabricTable::Delete index: %u, 7\n", fabricIndex);
+
+    if (mDelegateListRoot != nullptr)
+    {
+        FabricTable::Delegate * delegate = mDelegateListRoot;
+        while (delegate)
+        {
+            // It is possible that delegate will remove itself from the list in OnFabricRemoved,
+            // so we grab the next delegate in the list now.
+            FabricTable::Delegate * nextDelegate = delegate->next;
+            delegate->OnFabricRemoved(*this, fabricIndex);
+            delegate = nextDelegate;
+        }
+    }
+    printk("************ AG: FabricTable::Delete index: %u, 8\n", fabricIndex);
+
+    // Only return error after trying really hard to remove everything we could
+    ReturnErrorOnFailure(metadataErr);
+    ReturnErrorOnFailure(opKeyErr);
+    ReturnErrorOnFailure(opCertsErr);
+
+    printk("************ AG: FabricTable::Delete index: %u, end\n", fabricIndex);
+    return CHIP_NO_ERROR;
+}
+
+CHIP_ERROR FabricTable::DeletePartial(FabricIndex fabricIndex)
+{
+    printk("************ AG: FabricTable::DeletePartial index: %u, start\n", fabricIndex);
+    MATTER_TRACE_SCOPE("DeletePartial", "Fabric");
+    VerifyOrReturnError(mStorage != nullptr, CHIP_ERROR_INVALID_ARGUMENT);
+    VerifyOrReturnError(IsValidFabricIndex(fabricIndex), CHIP_ERROR_INVALID_ARGUMENT);
+
+    {
+        FabricTable::Delegate * delegate = mDelegateListRoot;
+        while (delegate)
+        {
+            // It is possible that delegate will remove itself from the list in FabricWillBeRemoved,
+            // so we grab the next delegate in the list now.
+            FabricTable::Delegate * nextDelegate = delegate->next;
+            delegate->FabricWillBeRemoved(*this, fabricIndex);
+            delegate = nextDelegate;
+        }
+    }
 
     if (mDelegateListRoot != nullptr)
     {
@@ -1060,11 +1111,7 @@ CHIP_ERROR FabricTable::Delete(FabricIndex fabricIndex)
         }
     }
 
-    // Only return error after trying really hard to remove everything we could
-    ReturnErrorOnFailure(metadataErr);
-    ReturnErrorOnFailure(opKeyErr);
-    ReturnErrorOnFailure(opCertsErr);
-
+    printk("************ AG: FabricTable::DeletePartial index: %u, end\n", fabricIndex);
     return CHIP_NO_ERROR;
 }
 
@@ -1156,19 +1203,22 @@ CHIP_ERROR FabricTable::Init(const FabricTable::InitParams & initParams)
                      err.Format());
     }
 
+    return CHIP_NO_ERROR;
+}
+
+void FabricTable::ClearPartial()
+{
     // Remove partial data, e.g. when the device was reset before storing commit marker
-    printk("************ AG: FabricTable::Cleanup\n");
+    printk("************ AG: FabricTable::ClearPartial\n");
     for (FabricIndex index = kMinValidFabricIndex; index < CHIP_CONFIG_MAX_FABRICS; ++index)
     {
         FabricInfo * fabricInfo = GetMutableFabricByIndex(index);
         printk("************ AG: FabricTable::Cleanup, index: %u, info: %p\n", index, fabricInfo);
         if (fabricInfo == nullptr)
         {
-            Delete(index);
+            DeletePartial(index);
         }
     }
-
-    return CHIP_NO_ERROR;
 }
 
 void FabricTable::Forget(FabricIndex fabricIndex)

@@ -414,6 +414,7 @@ public:
 
     // Returns CHIP_ERROR_NOT_FOUND if there is no fabric for that index.
     CHIP_ERROR Delete(FabricIndex fabricIndex);
+    CHIP_ERROR DeletePartial(FabricIndex fabricIndex);
     void DeleteAllFabrics();
 
     // TODO this #if CONFIG_BUILD_FOR_HOST_UNIT_TEST is temporary. There is a change incoming soon
@@ -490,6 +491,8 @@ public:
     //
     // TODO: We have to determine if we should remove this call.
     void Forget(FabricIndex fabricIndex);
+
+    void ClearPartial();
 
     CHIP_ERROR AddFabricDelegate(FabricTable::Delegate * delegate);
     void RemoveFabricDelegate(FabricTable::Delegate * delegate);

@@ -435,6 +435,18 @@ CHIP_ERROR Server::Init(const ServerInitParams & initParams)
                 },
                 reinterpret_cast<intptr_t>(this));
         }
+
+        printk("************ AG: Server::Init\n");
+        PlatformMgr().ScheduleWork(
+            [](intptr_t arg) {
+                printk("************ AG: Server::Init fooo\n");
+                Server * server = reinterpret_cast<Server *>(arg);
+                VerifyOrReturn(server != nullptr);
+
+                // TODO: add fail-safe marker, clear only specific index
+                server->GetFabricTable().ClearPartial();
+            },
+            reinterpret_cast<intptr_t>(this));
     }
 
 #if CHIP_DEVICE_CONFIG_ENABLE_COMMISSIONER_DISCOVERY_CLIENT // support UDC port for commissioner declaration msgs
