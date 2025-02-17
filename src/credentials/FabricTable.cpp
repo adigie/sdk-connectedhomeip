@@ -714,6 +714,7 @@ CHIP_ERROR FabricTable::LoadFromStorage(FabricInfo * fabric, FabricIndex newFabr
                newFabricIndex, err.Format());
     }
 
+    // TODO:
     // TODO(#19935): Sweep-away fabrics without RCAC/NOC by deleting everything and marking fabric gone.
 
     if (err == CHIP_NO_ERROR)
