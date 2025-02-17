@@ -1156,6 +1156,18 @@ CHIP_ERROR FabricTable::Init(const FabricTable::InitParams & initParams)
                      err.Format());
     }
 
+    // Remove partial data, e.g. when the device was reset before storing commit marker
+    printk("************ AG: FabricTable::Cleanup\n");
+    for (FabricIndex index = kMinValidFabricIndex; index < CHIP_CONFIG_MAX_FABRICS; ++index)
+    {
+        FabricInfo * fabricInfo = GetMutableFabricByIndex(index);
+        printk("************ AG: FabricTable::Cleanup, index: %u, info: %p\n", index, fabricInfo);
+        if (fabricInfo == nullptr)
+        {
+            Delete(index);
+        }
+    }
+
     return CHIP_NO_ERROR;
 }
 
