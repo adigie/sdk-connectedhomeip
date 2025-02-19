@@ -18,7 +18,7 @@
 #   @file
 #     CMake project for building and running selected CHIP unit tests using
 #     'nrfconnect' platform integration layer in CHIP and Zephyr
-#     'native_posix[_64]' platforms. Note that certain design decisions behind
+#     'native_posix[/native/64]' platforms. Note that certain design decisions behind
 #     the native_posix platforms make them inapplicable for some unit tests,
 #     hence only a subset of CHIP unit tests is listed in the project.
 #     See: https://docs.zephyrproject.org/1.12.0/boards/posix/native_posix/doc/board.html

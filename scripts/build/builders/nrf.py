@@ -128,7 +128,7 @@ class NrfBoard(Enum):
         elif self == NrfBoard.NRF5340DK:
             return 'nrf5340dk_nrf5340_cpuapp'
         elif self == NrfBoard.NATIVE_POSIX_64:
-            return 'native_posix_64'
+            return 'native_posix/native/64'
         else:
             raise Exception('Unknown board type: %r' % self)
 
