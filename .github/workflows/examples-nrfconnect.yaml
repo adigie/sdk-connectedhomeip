@@ -99,6 +99,7 @@ jobs:
             - name: Run unit tests for Zephyr native_sim/posix/64 platform
               if: github.event_name == 'push' || steps.changed_paths.outputs.tests == 'true' || steps.changed_paths.outputs.nrfconnect == 'true'
               run: |
+                  apt update && apt install -y gcc-multilib g++-multilib
                   scripts/run_in_build_env.sh "./scripts/build/build_examples.py --target nrf-native-sim-64-tests build"
             - name: Uploading Failed Test Logs
               uses: actions/upload-artifact@v4
