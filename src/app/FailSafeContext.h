@@ -27,7 +27,6 @@
 #include <lib/core/CHIPError.h>
 #include <lib/core/DataModelTypes.h>
 #include <platform/internal/CHIPDeviceLayerInternal.h>
-#include <system/SystemClock.h>
 
 namespace chip {
 namespace app {
@@ -112,6 +111,16 @@ public:
     void ForceFailSafeTimerExpiry();
 
 private:
+    // Stored to indicate a Fail-Safe is in armed, so that clean-up cana run on next boot
+    // if device is reset e.g. during commissioning.
+    struct Marker
+    {
+        Marker() = default;
+        Marker(FabricIndex fabricIndex_, bool isAddition_) : fabricIndex{ fabricIndex_ }, isAddition{ isAddition_ } {}
+        FabricIndex fabricIndex = kUndefinedFabricIndex;
+        bool isAddition         = false;
+    };
+
     PersistentStorageDelegate * mStorage   = nullptr;
     bool mFailSafeArmed                    = false;
     bool mFailSafeBusy                     = false;
@@ -158,6 +167,9 @@ private:
     }
 
     void FailSafeTimerExpired();
+    CHIP_ERROR GetMarker(Marker & outMarker);
+    CHIP_ERROR StoreMarker(const Marker & marker);
+    void ClearMarker();
 };
 
 } // namespace app
