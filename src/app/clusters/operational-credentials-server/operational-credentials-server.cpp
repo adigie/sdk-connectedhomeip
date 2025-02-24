@@ -589,6 +589,7 @@ bool emberAfOperationalCredentialsClusterAddNOCCallback(app::CommandHandler * co
                                                         const app::ConcreteCommandPath & commandPath,
                                                         const Commands::AddNOC::DecodableType & commandData)
 {
+    printk("************ AG: AddNOC 0\n");
     MATTER_TRACE_SCOPE("AddNOC", "OperationalCredentials");
     auto & NOCValue          = commandData.NOCValue;
     auto & ICACValue         = commandData.ICACValue;
@@ -646,9 +647,11 @@ bool emberAfOperationalCredentialsClusterAddNOCCallback(app::CommandHandler * co
     VerifyOrExit(IsOperationalNodeId(commandData.caseAdminSubject) || IsCASEAuthTag(commandData.caseAdminSubject),
                  nocResponse = NodeOperationalCertStatusEnum::kInvalidAdminSubject);
 
+    printk("************ AG: AddNOC 1, AddNewPendingFabricWithOperationalKeystore...\n");
     err = fabricTable.AddNewPendingFabricWithOperationalKeystore(NOCValue, ICACValue.ValueOr(ByteSpan{}), adminVendorId,
                                                                  &newFabricIndex);
     VerifyOrExit(err == CHIP_NO_ERROR, nocResponse = ConvertToNOCResponseStatus(err));
+    printk("************ AG: AddNOC 2, newFabricIndex = %u\n", newFabricIndex);
 
     // Inform FailSafeContext about starting adding NOC for specified fabric
     VerifyOrExit(failSafeContext.SetAddNocCommandStarted(newFabricIndex), nonDefaultStatus = Status::Failure);
@@ -670,6 +673,7 @@ bool emberAfOperationalCredentialsClusterAddNOCCallback(app::CommandHandler * co
     err = newFabricInfo->GetCompressedFabricIdBytes(compressed_fabric_id);
     VerifyOrExit(err == CHIP_NO_ERROR, nonDefaultStatus = Status::Failure);
 
+    printk("************ AG: AddNOC 3, SetKeySet...\n");
     err = groupDataProvider->SetKeySet(newFabricIndex, compressed_fabric_id, keyset);
     VerifyOrExit(err == CHIP_NO_ERROR, nocResponse = ConvertToNOCResponseStatus(err));
 
@@ -687,12 +691,14 @@ bool emberAfOperationalCredentialsClusterAddNOCCallback(app::CommandHandler * co
      */
     if (secureSession->GetSecureSessionType() == SecureSession::Type::kPASE)
     {
+        printk("************ AG: AddNOC 4, AdoptFabricIndex...\n");
         err = secureSession->AdoptFabricIndex(newFabricIndex);
         VerifyOrExit(err == CHIP_NO_ERROR, nonDefaultStatus = Status::Failure);
     }
 
     // Creating the initial ACL must occur after the PASE session has adopted the fabric index
     // (see above) so that the concomitant event, which is fabric scoped, is properly handled.
+    printk("************ AG: AddNOC 5, CreateAccessControlEntryForNewFabricAdministrator...\n");
     err = CreateAccessControlEntryForNewFabricAdministrator(commandObj->GetSubjectDescriptor(), newFabricIndex,
                                                             commandData.caseAdminSubject);
     VerifyOrExit(err != CHIP_ERROR_INTERNAL, nonDefaultStatus = Status::Failure);
@@ -700,6 +706,7 @@ bool emberAfOperationalCredentialsClusterAddNOCCallback(app::CommandHandler * co
 
     // The Fabric Index associated with the armed fail-safe context SHALL be updated to match the Fabric
     // Index just allocated.
+    printk("************ AG: AddNOC 6, SetAddNocCommandInvoked...\n");
     failSafeContext.SetAddNocCommandInvoked(newFabricIndex);
 
     // Done all intermediate steps, we are now successful
