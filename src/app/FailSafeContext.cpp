@@ -71,6 +71,7 @@ void FailSafeContext::CheckMarker()
         ChipLogError(FabricProvisioning, "Found a Fail-Safe marker for index 0x%x, preparing cleanup!",
                      static_cast<unsigned>(marker.fabricIndex));
 
+        printk("************ AG: FailSafeContext::BootUpCheck marker found\n");
         // Fake arm Fail-Safe and trigger timer expiry.
         // We handle only the case when new fabric is added. FabricTable CommitMarker
         // is responsible for guarding the case of updating the existing fabric.
@@ -81,6 +82,7 @@ void FailSafeContext::CheckMarker()
     }
     else if (err != CHIP_ERROR_PERSISTED_STORAGE_VALUE_NOT_FOUND)
     {
+        printk("************ AG: FailSafeContext::BootUpCheck GetMarker failed\n");
         // Got an error, but somehow value is not missing altogether: inconsistent state but touch nothing.
         ChipLogError(FabricProvisioning, "Error loading Fail-Safe marker: %" CHIP_ERROR_FORMAT ", hope for the best!",
                      err.Format());
@@ -197,16 +199,20 @@ void FailSafeContext::DisarmFailSafe()
 
 void FailSafeContext::ForceFailSafeTimerExpiry()
 {
+    printk("************ AG: FailSafeContext::ForceFailSafeTimerExpiry 0\n");
     if (!IsFailSafeArmed())
     {
         return;
     }
+    printk("************ AG: FailSafeContext::ForceFailSafeTimerExpiry 1\n");
 
     // Cancel the timer since we force its action
     DeviceLayer::SystemLayer().CancelTimer(HandleArmFailSafeTimer, this);
     DeviceLayer::SystemLayer().CancelTimer(HandleMaxCumulativeFailSafeTimer, this);
 
+    printk("************ AG: FailSafeContext::ForceFailSafeTimerExpiry 2\n");
     FailSafeTimerExpired();
+    printk("************ AG: FailSafeContext::ForceFailSafeTimerExpiry 3\n");
 }
 
 CHIP_ERROR FailSafeContext::GetMarker(Marker & outMarker)
