@@ -73,9 +73,21 @@ public:
         mFabricIndex                 = nocFabricIndex;
     }
 
-    void SetUpdateNocCommandInvoked() { mUpdateNocCommandHasBeenInvoked = true; }
-    void SetAddTrustedRootCertInvoked() { mAddTrustedRootCertHasBeenInvoked = true; }
-    void SetCsrRequestForUpdateNoc(bool isForUpdateNoc) { mIsCsrRequestForUpdateNoc = isForUpdateNoc; }
+    void SetUpdateNocCommandInvoked()
+    {
+        printk("************ AG: SetUpdateNocCommandInvoked\n");
+        mUpdateNocCommandHasBeenInvoked = true;
+    }
+    void SetAddTrustedRootCertInvoked()
+    {
+        printk("************ AG: SetAddTrustedRootCertInvoked\n");
+        mAddTrustedRootCertHasBeenInvoked = true;
+    }
+    void SetCsrRequestForUpdateNoc(bool isForUpdateNoc)
+    {
+        printk("************ AG: SetCsrRequestForUpdateNoc, isForUpdateNoc: %d\n", isForUpdateNoc);
+        mIsCsrRequestForUpdateNoc = isForUpdateNoc;
+    }
 
     /**
      * @brief
