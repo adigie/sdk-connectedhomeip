@@ -59,6 +59,34 @@ CHIP_ERROR FailSafeContext::Init(const InitParams & initParams)
     return CHIP_NO_ERROR;
 }
 
+void FailSafeContext::CheckMarker()
+{
+    Marker marker;
+
+    CHIP_ERROR err = GetMarker(marker);
+
+    if (err == CHIP_NO_ERROR)
+    {
+        // Found a marker! We need to trigger a cleanup.
+        ChipLogError(FabricProvisioning, "Found a Fail-Safe marker for index 0x%x, preparing cleanup!",
+                     static_cast<unsigned>(marker.fabricIndex));
+
+        // Fake arm Fail-Safe and trigger timer expiry.
+        // We handle only the case when new fabric is added. FabricTable CommitMarker
+        // is responsible for guarding the case of updating the existing fabric.
+        SetFailSafeArmed(true);
+        mFabricIndex                 = marker.fabricIndex;
+        mAddNocCommandHasBeenInvoked = true;
+        ForceFailSafeTimerExpiry();
+    }
+    else if (err != CHIP_ERROR_PERSISTED_STORAGE_VALUE_NOT_FOUND)
+    {
+        // Got an error, but somehow value is not missing altogether: inconsistent state but touch nothing.
+        ChipLogError(FabricProvisioning, "Error loading Fail-Safe marker: %" CHIP_ERROR_FORMAT ", hope for the best!",
+                     err.Format());
+    }
+}
+
 void FailSafeContext::HandleArmFailSafeTimer(System::Layer * layer, void * aAppState)
 {
     FailSafeContext * failSafeContext = reinterpret_cast<FailSafeContext *>(aAppState);
