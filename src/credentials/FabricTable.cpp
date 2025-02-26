@@ -113,10 +113,13 @@ exit:
 
 CHIP_ERROR FabricInfo::Init(const FabricInfo::InitParams & initParams)
 {
+    printk("************ AG: FabricInfo::Init 0\n");
     ReturnErrorOnFailure(initParams.AreValid());
+    printk("************ AG: FabricInfo::Init 1\n");
 
     Reset();
 
+    printk("************ AG: FabricInfo::Init 2\n");
     mNodeId                  = initParams.nodeId;
     mFabricId                = initParams.fabricId;
     mFabricIndex             = initParams.fabricIndex;
@@ -130,14 +133,17 @@ CHIP_ERROR FabricInfo::Init(const FabricInfo::InitParams & initParams)
     {
         if (initParams.hasExternallyOwnedKeypair)
         {
+            printk("************ AG: FabricInfo::Init 3\n");
             ReturnErrorOnFailure(SetExternallyOwnedOperationalKeypair(initParams.operationalKeypair));
         }
         else
         {
+            printk("************ AG: FabricInfo::Init 4\n");
             ReturnErrorOnFailure(SetOperationalKeypair(initParams.operationalKeypair));
         }
     }
 
+    printk("************ AG: FabricInfo::Init 5\n");
     return CHIP_NO_ERROR;
 }
 
@@ -864,7 +870,9 @@ FabricTable::AddOrUpdateInner(FabricIndex fabricIndex, bool isAddition, Crypto::
     NotBeforeCollector notBeforeCollector;
     P256PublicKey nocPubKey;
 
+    printk("************ AG: AddOrUpdateInner 1\n");
     // Validate the cert chain prior to adding
+    if (isAddition)
     {
         Platform::ScopedMemoryBuffer<uint8_t> nocBuf;
         Platform::ScopedMemoryBuffer<uint8_t> icacBuf;
@@ -887,32 +895,43 @@ FabricTable::AddOrUpdateInner(FabricIndex fabricIndex, bool isAddition, Crypto::
                                                       newFabricInfo.nodeId, nocPubKey, newFabricInfo.rootPublicKey));
     }
 
-    if (existingOpKey != nullptr)
+    printk("************ AG: AddOrUpdateInner 2\n");
+    if (isAddition)
     {
-        // Verify that public key in NOC matches public key of the provided keypair.
-        // When operational key is not injected (e.g. when mOperationalKeystore != nullptr)
-        // the check is done by the keystore in `ActivateOpKeypairForFabric`.
-        VerifyOrReturnError(existingOpKey->Pubkey().Matches(nocPubKey), CHIP_ERROR_INVALID_PUBLIC_KEY);
-
-        newFabricInfo.operationalKeypair        = existingOpKey;
-        newFabricInfo.hasExternallyOwnedKeypair = isExistingOpKeyExternallyOwned;
-    }
-    else if (mOperationalKeystore != nullptr)
-    {
-        // If a keystore exists, we activate the operational key now, which also validates if it was previously installed
-        if (mOperationalKeystore->HasPendingOpKeypair())
+        if (existingOpKey != nullptr)
         {
-            ReturnErrorOnFailure(mOperationalKeystore->ActivateOpKeypairForFabric(fabricIndex, nocPubKey));
+            // Verify that public key in NOC matches public key of the provided keypair.
+            // When operational key is not injected (e.g. when mOperationalKeystore != nullptr)
+            // the check is done by the keystore in `ActivateOpKeypairForFabric`.
+            VerifyOrReturnError(existingOpKey->Pubkey().Matches(nocPubKey), CHIP_ERROR_INVALID_PUBLIC_KEY);
+
+            newFabricInfo.operationalKeypair        = existingOpKey;
+            newFabricInfo.hasExternallyOwnedKeypair = isExistingOpKeyExternallyOwned;
+        }
+        else if (mOperationalKeystore != nullptr)
+        {
+            // If a keystore exists, we activate the operational key now, which also validates if it was previously installed
+            if (mOperationalKeystore->HasPendingOpKeypair())
+            {
+                ReturnErrorOnFailure(mOperationalKeystore->ActivateOpKeypairForFabric(fabricIndex, nocPubKey));
+            }
+            else
+            {
+                VerifyOrReturnError(mOperationalKeystore->HasOpKeypairForFabric(fabricIndex), CHIP_ERROR_KEY_NOT_FOUND);
+            }
         }
         else
         {
-            VerifyOrReturnError(mOperationalKeystore->HasOpKeypairForFabric(fabricIndex), CHIP_ERROR_KEY_NOT_FOUND);
+            return CHIP_ERROR_INCORRECT_STATE;
         }
     }
     else
     {
-        return CHIP_ERROR_INCORRECT_STATE;
+
+        newFabricInfo.operationalKeypair        = existingOpKey;
+        newFabricInfo.hasExternallyOwnedKeypair = isExistingOpKeyExternallyOwned;
     }
+    printk("************ AG: AddOrUpdateInner 3\n");
 
     newFabricInfo.advertiseIdentity = (advertiseIdentity == AdvertiseIdentity::Yes);
 
@@ -934,6 +953,7 @@ FabricTable::AddOrUpdateInner(FabricIndex fabricIndex, bool isAddition, Crypto::
         ChipLogProgress(FabricProvisioning, "Updated fabric at index: 0x%x, Node ID: 0x" ChipLogFormatX64,
                         static_cast<unsigned>(fabricEntry->GetFabricIndex()), ChipLogValueX64(fabricEntry->GetNodeId()));
     }
+    printk("************ AG: AddOrUpdateInner 4\n");
 
     // Failure to update pending Last Known Good Time is non-fatal.  If Last
     // Known Good Time is incorrect and this causes the commissioner's

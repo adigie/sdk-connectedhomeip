@@ -781,6 +781,7 @@ bool emberAfOperationalCredentialsClusterUpdateNOCCallback(app::CommandHandler *
                                                            const app::ConcreteCommandPath & commandPath,
                                                            const Commands::UpdateNOC::DecodableType & commandData)
 {
+    printk("************ AG: UpdateNOC 0\n");
     MATTER_TRACE_SCOPE("UpdateNOC", "OperationalCredentials");
     auto & NOCValue  = commandData.NOCValue;
     auto & ICACValue = commandData.ICACValue;
@@ -793,43 +794,55 @@ bool emberAfOperationalCredentialsClusterUpdateNOCCallback(app::CommandHandler *
 
     ChipLogProgress(Zcl, "OpCreds: Received an UpdateNOC command");
 
+    printk("************ AG: UpdateNOC 1\n");
     auto & fabricTable            = Server::GetInstance().GetFabricTable();
     auto & failSafeContext        = Server::GetInstance().GetFailSafeContext();
     const FabricInfo * fabricInfo = RetrieveCurrentFabric(commandObj);
 
+    printk("************ AG: UpdateNOC 2\n");
     bool csrWasForUpdateNoc = false; //< Output param of HasPendingOperationalKey
     bool hasPendingKey      = fabricTable.HasPendingOperationalKey(csrWasForUpdateNoc);
 
+    printk("************ AG: UpdateNOC 3\n");
     VerifyOrExit(NOCValue.size() <= Credentials::kMaxCHIPCertLength, nonDefaultStatus = Status::InvalidCommand);
     VerifyOrExit(!ICACValue.HasValue() || ICACValue.Value().size() <= Credentials::kMaxCHIPCertLength,
                  nonDefaultStatus = Status::InvalidCommand);
     VerifyOrExit(failSafeContext.IsFailSafeArmed(commandObj->GetAccessingFabricIndex()),
                  nonDefaultStatus = Status::FailsafeRequired);
 
+    printk("************ AG: UpdateNOC 4\n");
     VerifyOrExit(!failSafeContext.NocCommandHasBeenInvoked(), nonDefaultStatus = Status::ConstraintError);
 
+    printk("************ AG: UpdateNOC 4.1\n");
     // Must have had a previous CSR request, tagged for UpdateNOC
-    VerifyOrExit(hasPendingKey, nocResponse = NodeOperationalCertStatusEnum::kMissingCsr);
-    VerifyOrExit(csrWasForUpdateNoc, nonDefaultStatus = Status::ConstraintError);
+    // VerifyOrExit(hasPendingKey, nocResponse = NodeOperationalCertStatusEnum::kMissingCsr);
+    printk("************ AG: UpdateNOC 4.2\n");
+    // VerifyOrExit(csrWasForUpdateNoc, nonDefaultStatus = Status::ConstraintError);
 
+    printk("************ AG: UpdateNOC 5\n");
     // If current fabric is not available, command was invoked over PASE which is not legal
     VerifyOrExit(fabricInfo != nullptr, nocResponse = ConvertToNOCResponseStatus(CHIP_ERROR_INSUFFICIENT_PRIVILEGE));
     fabricIndex = fabricInfo->GetFabricIndex();
 
+    printk("************ AG: UpdateNOC 6\n");
     // Flush acks before really slow work
     commandObj->FlushAcksRightAwayOnSlowCommand();
 
+    printk("************ AG: UpdateNOC 7\n");
     err = fabricTable.UpdatePendingFabricWithOperationalKeystore(fabricIndex, NOCValue, ICACValue.ValueOr(ByteSpan{}));
     VerifyOrExit(err == CHIP_NO_ERROR, nocResponse = ConvertToNOCResponseStatus(err));
 
+    printk("************ AG: UpdateNOC 8\n");
     // Flag on the fail-safe context that the UpdateNOC command was invoked.
     failSafeContext.SetUpdateNocCommandInvoked();
 
+    printk("************ AG: UpdateNOC 9\n");
     // We might have a new operational identity, so we should start advertising
     // it right away.  Also, we need to withdraw our old operational identity.
     // So we need to StartServer() here.
     app::DnssdServer::Instance().StartServer();
 
+    printk("************ AG: UpdateNOC 10\n");
     // Attribute notification was already done by fabric table
 exit:
     // We have an NOC response
