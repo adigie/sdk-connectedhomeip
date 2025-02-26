@@ -114,10 +114,13 @@ exit:
 
 CHIP_ERROR FabricInfo::Init(const FabricInfo::InitParams & initParams)
 {
+    printk("************ AG: FabricInfo::Init 0\n");
     ReturnErrorOnFailure(initParams.AreValid());
+    printk("************ AG: FabricInfo::Init 1\n");
 
     Reset();
 
+    printk("************ AG: FabricInfo::Init 2\n");
     mNodeId                  = initParams.nodeId;
     mFabricId                = initParams.fabricId;
     mFabricIndex             = initParams.fabricIndex;
@@ -131,14 +134,17 @@ CHIP_ERROR FabricInfo::Init(const FabricInfo::InitParams & initParams)
     {
         if (initParams.hasExternallyOwnedKeypair)
         {
+            printk("************ AG: FabricInfo::Init 3\n");
             ReturnErrorOnFailure(SetExternallyOwnedOperationalKeypair(initParams.operationalKeypair));
         }
         else
         {
+            printk("************ AG: FabricInfo::Init 4\n");
             ReturnErrorOnFailure(SetOperationalKeypair(initParams.operationalKeypair));
         }
     }
 
+    printk("************ AG: FabricInfo::Init 5\n");
     return CHIP_NO_ERROR;
 }
 
@@ -865,6 +871,7 @@ FabricTable::AddOrUpdateInner(FabricIndex fabricIndex, bool isAddition, Crypto::
     NotBeforeCollector notBeforeCollector;
     P256PublicKey nocPubKey;
 
+    printk("************ AG: AddOrUpdateInner 1\n");
     // Validate the cert chain prior to adding
     {
         Platform::ScopedMemoryBuffer<uint8_t> nocBuf;
@@ -935,6 +942,7 @@ FabricTable::AddOrUpdateInner(FabricIndex fabricIndex, bool isAddition, Crypto::
         ChipLogProgress(FabricProvisioning, "Updated fabric at index: 0x%x, Node ID: 0x" ChipLogFormatX64,
                         static_cast<unsigned>(fabricEntry->GetFabricIndex()), ChipLogValueX64(fabricEntry->GetNodeId()));
     }
+    printk("************ AG: AddOrUpdateInner 4\n");
 
     // Failure to update pending Last Known Good Time is non-fatal.  If Last
     // Known Good Time is incorrect and this causes the commissioner's
