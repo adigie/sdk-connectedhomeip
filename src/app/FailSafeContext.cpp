@@ -40,13 +40,12 @@ namespace {
 
 // Tags for marker storage
 constexpr TLV::Tag kMarkerFabricIndexTag = TLV::ContextTag(0);
-constexpr TLV::Tag kMarkerIsAdditionTag  = TLV::ContextTag(1);
 
 constexpr size_t MarkerContextTLVMaxSize()
 {
     // Add 2x uncommitted uint64_t to leave space for backwards/forwards
     // versioning for this critical feature that runs at boot.
-    return TLV::EstimateStructOverhead(sizeof(FabricIndex), sizeof(bool), sizeof(uint64_t), sizeof(uint64_t));
+    return TLV::EstimateStructOverhead(sizeof(FabricIndex), sizeof(uint64_t), sizeof(uint64_t));
 }
 
 } // namespace
@@ -69,19 +68,15 @@ void FailSafeContext::CheckMarker()
     if (err == CHIP_NO_ERROR)
     {
         // Found a marker! We need to trigger a cleanup.
-        ChipLogError(FabricProvisioning, "Found a Fail-Safe marker for index 0x%x (isAddition: %d), preparing cleanup!",
-                     static_cast<unsigned>(marker.fabricIndex), static_cast<int>(marker.isAddition));
+        ChipLogError(FabricProvisioning, "Found a Fail-Safe marker for index 0x%x, preparing cleanup!",
+                     static_cast<unsigned>(marker.fabricIndex));
 
+        // Fake arm Fail-Safe and trigger timer expiry.
+        // We handle only the case when new fabric is added. FabricTable CommitMarker
+        // is responsible for guarding the case of updating the existing fabric.
         SetFailSafeArmed(true);
-        mFabricIndex = marker.fabricIndex;
-        if (marker.isAddition)
-        {
-            mAddNocCommandHasBeenInvoked = true;
-        }
-        else
-        {
-            mUpdateNocCommandHasBeenInvoked = true;
-        }
+        mFabricIndex                 = marker.fabricIndex;
+        mAddNocCommandHasBeenInvoked = true;
         ForceFailSafeTimerExpiry();
     }
     else if (err != CHIP_ERROR_PERSISTED_STORAGE_VALUE_NOT_FOUND)
@@ -230,9 +225,6 @@ CHIP_ERROR FailSafeContext::GetMarker(Marker & outMarker)
     ReturnErrorOnFailure(reader.Next(kMarkerFabricIndexTag));
     ReturnErrorOnFailure(reader.Get(outMarker.fabricIndex));
 
-    ReturnErrorOnFailure(reader.Next(kMarkerIsAdditionTag));
-    ReturnErrorOnFailure(reader.Get(outMarker.isAddition));
-
     // Don't try to exit container: we got all we needed. This allows us to
     // avoid erroring-out on newer versions.
 
@@ -250,7 +242,6 @@ CHIP_ERROR FailSafeContext::StoreMarker(const Marker & marker)
     TLV::TLVType outerType;
     ReturnErrorOnFailure(writer.StartContainer(TLV::AnonymousTag(), TLV::kTLVType_Structure, outerType));
     ReturnErrorOnFailure(writer.Put(kMarkerFabricIndexTag, marker.fabricIndex));
-    ReturnErrorOnFailure(writer.Put(kMarkerIsAdditionTag, marker.isAddition));
     ReturnErrorOnFailure(writer.EndContainer(outerType));
 
     const auto markerContextTLVLength = writer.GetLengthWritten();

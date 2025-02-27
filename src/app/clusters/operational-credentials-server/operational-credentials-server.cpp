@@ -812,9 +812,6 @@ bool emberAfOperationalCredentialsClusterUpdateNOCCallback(app::CommandHandler *
     // Flush acks before really slow work
     commandObj->FlushAcksRightAwayOnSlowCommand();
 
-    // Inform FailSafeContext about starting updating NOC for specified fabric
-    VerifyOrExit(failSafeContext.SetUpdateNocCommandStarted(fabricIndex), nonDefaultStatus = Status::Failure);
-
     err = fabricTable.UpdatePendingFabricWithOperationalKeystore(fabricIndex, NOCValue, ICACValue.ValueOr(ByteSpan{}));
     VerifyOrExit(err == CHIP_NO_ERROR, nocResponse = ConvertToNOCResponseStatus(err));
 

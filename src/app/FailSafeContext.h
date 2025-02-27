@@ -63,7 +63,7 @@ public:
     {
         mFabricIndex = nocFabricIndex;
 
-        Marker marker{ mFabricIndex, true };
+        Marker marker{ mFabricIndex };
         return StoreMarker(marker) == CHIP_NO_ERROR;
     }
 
@@ -71,14 +71,6 @@ public:
     {
         mAddNocCommandHasBeenInvoked = true;
         mFabricIndex                 = nocFabricIndex;
-    }
-
-    bool SetUpdateNocCommandStarted(FabricIndex nocFabricIndex)
-    {
-        mFabricIndex = nocFabricIndex;
-
-        Marker marker{ mFabricIndex, false };
-        return StoreMarker(marker) == CHIP_NO_ERROR;
     }
 
     void SetUpdateNocCommandInvoked() { mUpdateNocCommandHasBeenInvoked = true; }
@@ -136,9 +128,8 @@ private:
     struct Marker
     {
         Marker() = default;
-        Marker(FabricIndex fabricIndex_, bool isAddition_) : fabricIndex{ fabricIndex_ }, isAddition{ isAddition_ } {}
+        Marker(FabricIndex fabricIndex_) : fabricIndex{ fabricIndex_ } {}
         FabricIndex fabricIndex = kUndefinedFabricIndex;
-        bool isAddition         = false;
     };
 
     PersistentStorageDelegate * mStorage   = nullptr;
