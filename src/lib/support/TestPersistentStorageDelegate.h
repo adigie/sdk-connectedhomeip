@@ -55,6 +55,7 @@ public:
 
     CHIP_ERROR SyncGetKeyValue(const char * key, void * buffer, uint16_t & size) override
     {
+        printf("************ AG: SyncGetKeyValue %s\n", key);
         if (mLoggingLevel >= LoggingLevel::kLogMutationAndReads)
         {
             ChipLogDetail(Test, "TestPersistentStorageDelegate::SyncGetKeyValue: Get key '%s'", StringOrNullMarker(key));
@@ -81,6 +82,7 @@ public:
 
     CHIP_ERROR SyncSetKeyValue(const char * key, const void * value, uint16_t size) override
     {
+        printf("************ AG: SyncSetKeyValue %s\n", key);
         if (mLoggingLevel >= LoggingLevel::kLogMutation)
         {
             ChipLogDetail(Test, "TestPersistentStorageDelegate::SyncSetKeyValue, Set key '%s' with data size %u", key,
@@ -103,6 +105,7 @@ public:
 
     CHIP_ERROR SyncDeleteKeyValue(const char * key) override
     {
+        printf("************ AG: SyncDeleteKeyValue %s\n", key);
         if (mLoggingLevel >= LoggingLevel::kLogMutation)
         {
             ChipLogDetail(Test, "TestPersistentStorageDelegate::SyncDeleteKeyValue, Delete key '%s'", StringOrNullMarker(key));
