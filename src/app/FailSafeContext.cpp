@@ -67,6 +67,16 @@ void FailSafeContext::CheckMarker()
 
     if (err == CHIP_NO_ERROR)
     {
+        // This should not be possible at this point
+        VerifyOrDie(IsFailSafeArmed() == false);
+
+        // Fail-Safe may be busy due to cleanup scheduled by failed commit to FabricTable.
+        // We can ignore it here, AddNOCStartedMarker will be deleted when Fail-Safe is disarmed.
+        if (IsFailSafeBusy())
+        {
+            return;
+        }
+
         // Found a marker! We need to trigger a cleanup.
         ChipLogError(FabricProvisioning, "Found a Fail-Safe marker for index 0x%x, preparing cleanup!",
                      static_cast<unsigned>(marker.fabricIndex));
