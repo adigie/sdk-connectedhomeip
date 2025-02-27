@@ -78,7 +78,7 @@ void FailSafeContext::CheckMarker()
         }
 
         // Found a marker! We need to trigger a cleanup.
-        ChipLogError(FabricProvisioning, "Found a Fail-Safe marker for index 0x%x, preparing cleanup!",
+        ChipLogError(FailSafe, "Found a Fail-Safe marker for index 0x%x, preparing cleanup!",
                      static_cast<unsigned>(marker.fabricIndex));
 
         printk("************ AG: FailSafeContext::BootUpCheck marker found\n");
@@ -94,8 +94,7 @@ void FailSafeContext::CheckMarker()
     {
         printk("************ AG: FailSafeContext::BootUpCheck GetMarker failed\n");
         // Got an error, but somehow value is not missing altogether: inconsistent state but touch nothing.
-        ChipLogError(FabricProvisioning, "Error loading Fail-Safe marker: %" CHIP_ERROR_FORMAT ", hope for the best!",
-                     err.Format());
+        ChipLogError(FailSafe, "Error loading Fail-Safe marker: %" CHIP_ERROR_FORMAT ", hope for the best!", err.Format());
     }
 }
 
