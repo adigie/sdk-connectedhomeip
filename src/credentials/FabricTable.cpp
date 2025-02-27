@@ -31,6 +31,7 @@
 #include <platform/LockTracker.h>
 #include <tracing/macros.h>
 #include <zephyr/kernel.h>
+#include <zephyr/sys/reboot.h>
 
 namespace chip {
 using namespace Credentials;
@@ -1968,6 +1969,7 @@ CHIP_ERROR FabricTable::CommitPendingFabricData()
     {
         ChipLogError(FabricProvisioning, "Failed to store commit marker, may be inconsistent if reboot happens during fail-safe!");
     }
+    sys_reboot(0);
 
     {
         // This scope block is to illustrate the complete commit transaction
