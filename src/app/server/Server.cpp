@@ -133,6 +133,9 @@ CHIP_ERROR Server::Init(const ServerInitParams & initParams)
     // TODO(16969): Remove chip::Platform::MemoryInit() call from Server class, it belongs to outer code
     chip::Platform::MemoryInit();
 
+    // Initialize factory reset handler for application
+    mFactoryResetAppHandler = initParams.factoryResetAppHandler;
+
     // Initialize PersistentStorageDelegate-based storage
     mDeviceStorage                 = initParams.persistentStorageDelegate;
     mSessionResumptionStorage      = initParams.sessionResumptionStorage;

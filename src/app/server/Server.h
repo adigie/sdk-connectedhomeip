@@ -188,6 +188,8 @@ struct ServerInitParams
     // If the ICD Check-In protocol use-case is supported and no strategy is provided, server will use the default strategy.
     app::ICDCheckInBackOffStrategy * icdCheckInBackOffStrategy = nullptr;
 #endif // CHIP_CONFIG_ENABLE_ICD_CIP
+    // Factory reset handler for application
+    CHIP_ERROR (*factoryResetAppHandler)(void) = nullptr;
 };
 
 /**
@@ -705,6 +707,7 @@ private:
 #if CHIP_CONFIG_ENABLE_ICD_SERVER
     app::ICDManager mICDManager;
 #endif // CHIP_CONFIG_ENABLE_ICD_SERVER
+    CHIP_ERROR (*mFactoryResetAppHandler)(void) = nullptr;
 };
 
 void ServerScheduleFactoryReset();

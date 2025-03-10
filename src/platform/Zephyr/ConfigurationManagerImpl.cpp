@@ -244,12 +244,12 @@ void ConfigurationManagerImpl::DoFactoryReset(intptr_t arg)
         ChipLogError(DeviceLayer, "Factory reset failed: %" CHIP_ERROR_FORMAT, err.Format());
     }
 
+#endif // CONFIG_CHIP_FACTORY_RESET_ERASE_SETTINGS
+
     if (!AppFactoryResetHandler())
     {
         ChipLogError(DeviceLayer, "Factory reset failed, AppFactoryReset failed");
     }
-
-#endif // CONFIG_CHIP_FACTORY_RESET_ERASE_SETTINGS
 
     PlatformMgr().Shutdown();
 }
