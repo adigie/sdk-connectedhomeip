@@ -34,6 +34,10 @@
 #include <inet/ZephyrSocket.h> // nogncheck
 #endif
 
+#if CHIP_SYSTEM_CONFIG_USE_OPEN_THREAD_ENDPOINT 
+//TODO:
+#endif
+
 #include <zephyr/kernel.h>
 
 namespace chip {
@@ -55,11 +59,11 @@ protected:
     using ThreadStack = k_thread_stack_t *;
 
     // Members for select() loop
-    int mMaxFd;
-    fd_set mReadSet;
-    fd_set mWriteSet;
-    fd_set mErrorSet;
-    timeval mNextTimeout;
+    // int mMaxFd;
+    // fd_set mReadSet;
+    // fd_set mWriteSet;
+    // fd_set mErrorSet;
+    // timeval mNextTimeout;
 
     // Lock for the whole CHIP stack
     k_mutex mChipStackLock;
