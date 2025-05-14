@@ -17,7 +17,16 @@
 
 #include <platform/internal/CHIPDeviceLayerInternal.h>
 
+#if CHIP_SYSTEM_CONFIG_USE_POSIX_SOCKETS || CHIP_SYSTEM_CONFIG_USE_ZEPHYR_SOCKETS
 #include <inet/UDPEndPointImplSockets.h>
+using UDPEndPointImpl = chip::Inet::UDPEndPointImplSockets;
+#endif
+
+#if CHIP_SYSTEM_CONFIG_USE_OPEN_THREAD_ENDPOINT
+#include <inet/UDPEndPointImplOpenThread.h>
+using UDPEndPointImpl = chip::Inet::UDPEndPointImplOT;
+#endif
+
 #include <lib/support/CodeUtils.h>
 #include <lib/support/logging/CHIPLogging.h>
 #include <platform/ConnectivityManager.h>
@@ -46,8 +55,8 @@
 #if CHIP_DEVICE_CONFIG_ENABLE_WIFI
 // Temporary workaround for lack of the public Zephyr's API for MLDv2.
 // Should be removed after https://github.com/zephyrproject-rtos/zephyr/pull/79274 is merged.
-extern "C" int net_ipv6_mld_join(struct net_if *iface, const struct in6_addr *addr);
-extern "C" int net_ipv6_mld_leave(struct net_if *iface, const struct in6_addr *addr);
+extern "C" int net_ipv6_mld_join(struct net_if * iface, const struct in6_addr * addr);
+extern "C" int net_ipv6_mld_leave(struct net_if * iface, const struct in6_addr * addr);
 #endif
 
 using namespace ::chip::Inet;
@@ -56,51 +65,53 @@ using namespace ::chip::DeviceLayer::Internal;
 namespace chip {
 namespace DeviceLayer {
 
-namespace {
-CHIP_ERROR JoinLeaveMulticastGroup(net_if * iface, const Inet::IPAddress & address,
-                                   UDPEndPointImplSockets::MulticastOperation operation)
-{
-#if CHIP_DEVICE_CONFIG_ENABLE_THREAD
-    if (net_if_l2(iface) == &NET_L2_GET_NAME(OPENTHREAD))
-    {
-        const otIp6Address otAddress = ToOpenThreadIP6Address(address);
-        const auto handler = operation == UDPEndPointImplSockets::MulticastOperation::kJoin ? otIp6SubscribeMulticastAddress
-                                                                                            : otIp6UnsubscribeMulticastAddress;
-        otError error;
-
-        ThreadStackMgr().LockThreadStack();
-        error = handler(openthread_get_default_instance(), &otAddress);
-        ThreadStackMgr().UnlockThreadStack();
-
-        return MapOpenThreadError(error);
-    }
-#endif
-
-#if CHIP_DEVICE_CONFIG_ENABLE_WIFI
-    // The following code should also be valid for other interface types, such as Ethernet,
-    // but they are not officially supported, so for now enable it for Wi-Fi only.
-    const in6_addr in6Addr = InetUtils::ToZephyrAddr(address);
-    int status;
-
-    if (operation == UDPEndPointImplSockets::MulticastOperation::kJoin)
-    {
-        status = net_ipv6_mld_join(iface, &in6Addr);
-        VerifyOrReturnError((status == 0 || status == -EALREADY), System::MapErrorZephyr(status));
-    }
-    else if (operation == UDPEndPointImplSockets::MulticastOperation::kLeave)
-    {
-        status = net_ipv6_mld_leave(iface, &in6Addr);
-        VerifyOrReturnError(status == 0, System::MapErrorZephyr(status));
-    }
-    else
-    {
-        return CHIP_ERROR_INCORRECT_STATE;
-    }
-#endif
-
-    return CHIP_NO_ERROR;
-}
-} // namespace
+// namespace {
+// CHIP_ERROR JoinLeaveMulticastGroup(net_if * iface, const Inet::IPAddress & address, UDPEndPointImpl::MulticastOperation
+// operation)
+// {
+// #if CHIP_DEVICE_CONFIG_ENABLE_THREAD
+//     if (net_if_l2(iface) == &NET_L2_GET_NAME(OPENTHREAD))
+//     {
+//         // const otIp6Address otAddress = ToOpenThreadIP6Address(address);
+//         // const auto handler           = operation == UDPEndPointImpl::MulticastOperation::kJoin ?
+//         otIp6SubscribeMulticastAddress
+//         //                                                                                        :
+//         // otIp6UnsubscribeMulticastAddress;
+//         // otError error;
+//         //
+//         // ThreadStackMgr().LockThreadStack();
+//         // error = handler(openthread_get_default_instance(), &otAddress);
+//         // ThreadStackMgr().UnlockThreadStack();
+//         //
+//         // return MapOpenThreadError(error);
+//     }
+// #endif
+//
+// #if CHIP_DEVICE_CONFIG_ENABLE_WIFI
+//     // The following code should also be valid for other interface types, such as Ethernet,
+//     // but they are not officially supported, so for now enable it for Wi-Fi only.
+//     const in6_addr in6Addr = InetUtils::ToZephyrAddr(address);
+//     int status;
+//
+//     if (operation == UDPEndPointImpl::MulticastOperation::kJoin)
+//     {
+//         status = net_ipv6_mld_join(iface, &in6Addr);
+//         VerifyOrReturnError((status == 0 || status == -EALREADY), System::MapErrorZephyr(status));
+//     }
+//     else if (operation == UDPEndPointImpl::MulticastOperation::kLeave)
+//     {
+//         status = net_ipv6_mld_leave(iface, &in6Addr);
+//         VerifyOrReturnError(status == 0, System::MapErrorZephyr(status));
+//     }
+//     else
+//     {
+//         return CHIP_ERROR_INCORRECT_STATE;
+//     }
+// #endif
+//
+//     return CHIP_NO_ERROR;
+// }
+// } // namespace
 
 ConnectivityManagerImpl ConnectivityManagerImpl::sInstance;
 
@@ -114,24 +125,24 @@ CHIP_ERROR ConnectivityManagerImpl::_Init()
 #endif
 
 #if CHIP_DEVICE_CONFIG_ENABLE_THREAD || CHIP_DEVICE_CONFIG_ENABLE_WIFI
-    UDPEndPointImplSockets::SetMulticastGroupHandler(
-        [](InterfaceId interfaceId, const IPAddress & address, UDPEndPointImplSockets::MulticastOperation operation) {
-            if (interfaceId.IsPresent())
-            {
-                net_if * iface = InetUtils::GetInterface(interfaceId);
-                VerifyOrReturnError(iface != nullptr, INET_ERROR_UNKNOWN_INTERFACE);
-
-                return JoinLeaveMulticastGroup(iface, address, operation);
-            }
-
-            // If the interface is not specified, join or leave the multicast group on all interfaces.
-            for (int i = 1; net_if * iface = net_if_get_by_index(i); i++)
-            {
-                ReturnErrorOnFailure(JoinLeaveMulticastGroup(iface, address, operation));
-            }
-
-            return CHIP_NO_ERROR;
-        });
+    // UDPEndPointImpl::SetMulticastGroupHandler(
+    //     [](InterfaceId interfaceId, const IPAddress & address, UDPEndPointImpl::MulticastOperation operation) {
+    //         if (interfaceId.IsPresent())
+    //         {
+    //             net_if * iface = InetUtils::GetInterface(interfaceId);
+    //             VerifyOrReturnError(iface != nullptr, INET_ERROR_UNKNOWN_INTERFACE);
+    //
+    //             return JoinLeaveMulticastGroup(iface, address, operation);
+    //         }
+    //
+    //         // If the interface is not specified, join or leave the multicast group on all interfaces.
+    //         for (int i = 1; net_if * iface = net_if_get_by_index(i); i++)
+    //         {
+    //             ReturnErrorOnFailure(JoinLeaveMulticastGroup(iface, address, operation));
+    //         }
+    //
+    //         return CHIP_NO_ERROR;
+    //     });
 #endif // CHIP_DEVICE_CONFIG_ENABLE_THREAD || CHIP_DEVICE_CONFIG_ENABLE_WIFI
 
     return CHIP_NO_ERROR;
