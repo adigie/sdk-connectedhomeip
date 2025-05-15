@@ -235,7 +235,6 @@ class LayerFreeRTOS : public Layer
 
 #endif // CHIP_SYSTEM_CONFIG_USE_LWIP
 
-//TODO: OT impl
 #if CHIP_SYSTEM_CONFIG_USE_SOCKETS
 
 class LayerSockets : public Layer
@@ -358,6 +357,15 @@ protected:
 };
 
 #endif // CHIP_SYSTEM_CONFIG_USE_SOCKETS
+
+// TODO: OT impl
+#if !CHIP_SYSTEM_CONFIG_USE_SOCKETS && !CHIP_SYSTEM_CONFIG_USE_LWIP && CHIP_SYSTEM_CONFIG_USE_OPEN_THREAD_ENDPOINT
+
+class LayerFoo : public Layer
+{
+};
+
+#endif
 
 } // namespace System
 } // namespace chip

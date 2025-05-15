@@ -186,6 +186,16 @@ bool InterfaceAddressIterator::HasBroadcastAddress()
     return HasCurrent() && (otIp6GetMulticastAddresses(Inet::globalOtInstance) != nullptr);
 }
 
+CHIP_ERROR InterfaceIterator::GetInterfaceType(InterfaceType & type)
+{
+    return CHIP_ERROR_NOT_IMPLEMENTED;
+}
+
+CHIP_ERROR InterfaceIterator::GetHardwareAddress(uint8_t * addressBuffer, uint8_t & addressSize, uint8_t addressBufferSize)
+{
+    return CHIP_ERROR_NOT_IMPLEMENTED;
+}
+
 #endif
 
 #if CHIP_SYSTEM_CONFIG_USE_LWIP && !CHIP_SYSTEM_CONFIG_USE_OPEN_THREAD_ENDPOINT

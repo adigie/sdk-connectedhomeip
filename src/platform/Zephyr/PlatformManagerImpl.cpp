@@ -31,7 +31,7 @@
 #include <lib/support/logging/CHIPLogging.h>
 #include <platform/PlatformManager.h>
 #include <platform/Zephyr/DiagnosticDataProviderImpl.h>
-#include <platform/internal/GenericPlatformManagerImpl_Zephyr.ipp>
+#include <platform/internal/GenericPlatformManagerImpl_Foo.ipp>
 
 #include <malloc.h>
 #include <zephyr/drivers/entropy.h>
@@ -137,7 +137,7 @@ CHIP_ERROR PlatformManagerImpl::_InitChipStack(void)
 #endif // !defined(CONFIG_NRF_SECURITY) && !defined(CONFIG_MBEDTLS_ENTROPY_POLL_ZEPHYR)
 
     // Call _InitChipStack() on the generic implementation base class to finish the initialization process.
-    err = Internal::GenericPlatformManagerImpl_Zephyr<PlatformManagerImpl>::_InitChipStack();
+    err = Internal::GenericPlatformManagerImpl_Foo<PlatformManagerImpl>::_InitChipStack();
     SuccessOrExit(err);
 
     // Start the timer to periodically save node operational hours.

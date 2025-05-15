@@ -138,6 +138,7 @@ buildconfig_header("system_buildconfig") {
     defines += [ "SYSTEM_ENABLE_CLANG_THREAD_SAFETY_ANALYSIS=1" ]
   }
 
+  #TODO: AG: system layer
   if (chip_system_layer_impl_config_file != "") {
     defines += [ "CHIP_SYSTEM_LAYER_IMPL_CONFIG_FILE=${chip_system_layer_impl_config_file}" ]
   } else {
@@ -206,6 +207,10 @@ source_set("system_config_header") {
     public_deps += [ "${mt793x_sdk_build_root}:mt793x_sdk" ]
   }
 }
+
+print("******* chip_system_layer_impl_config_file: ${chip_system_layer_impl_config_file}")
+print("******* chip_system_config_event_loop: ${chip_system_config_event_loop}")
+
 
 static_library("system") {
   output_name = "libSystemLayer"
