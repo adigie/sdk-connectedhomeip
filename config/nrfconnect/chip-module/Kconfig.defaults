@@ -111,7 +111,7 @@ config NET_IPV6_MLD
 
 config NET_IPV6_NBR_CACHE
     default y if CHIP_WIFI
-    default n if NET_L2_OPENTHREAD
+    default n if OPENTHREAD
 
 config NET_IF_UNICAST_IPV6_ADDR_COUNT
     default 6
@@ -267,10 +267,10 @@ config NRF_WIFI_FW_PATCH_DFU
 # OpenThread L2 configuration
 # ==============================================================================
 
-config NET_L2_OPENTHREAD
+config OPENTHREAD
     default y if !WIFI_NRF70
 
-if NET_L2_OPENTHREAD
+if OPENTHREAD
 
 # Increase the default RX stack size
 config IEEE802154_NRF5_RX_STACK_SIZE
