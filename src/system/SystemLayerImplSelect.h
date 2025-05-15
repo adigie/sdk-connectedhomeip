@@ -28,7 +28,7 @@
 #include <sys/select.h>
 #endif
 
-#if CHIP_SYSTEM_CONFIG_USE_ZEPHYR_SOCKETS
+#if CHIP_SYSTEM_CONFIG_USE_ZEPHYR_SOCKETS || 1
 #include <inet/ZephyrSocket.h> // nogncheck
 #endif
 

@@ -40,7 +40,7 @@
 #include <system/SystemError.h>
 #include <system/SystemEvent.h>
 
-#if CHIP_SYSTEM_CONFIG_USE_SOCKETS
+#if CHIP_SYSTEM_CONFIG_USE_SOCKETS || 1
 #include <lib/support/IntrusiveList.h>
 #include <system/SocketEvents.h>
 #endif // CHIP_SYSTEM_CONFIG_USE_SOCKETS
@@ -235,8 +235,8 @@ class LayerFreeRTOS : public Layer
 
 #endif // CHIP_SYSTEM_CONFIG_USE_LWIP
 
-//TODO: OT impl
-#if CHIP_SYSTEM_CONFIG_USE_SOCKETS
+// TODO: OT impl
+#if CHIP_SYSTEM_CONFIG_USE_SOCKETS || 1
 
 class LayerSockets : public Layer
 {

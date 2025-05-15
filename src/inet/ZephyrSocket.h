@@ -24,7 +24,7 @@
 
 #pragma once
 
-#if CHIP_SYSTEM_CONFIG_USE_ZEPHYR_SOCKETS
+#if CHIP_SYSTEM_CONFIG_USE_ZEPHYR_SOCKETS || 1
 #include <zephyr/net/socket.h>
 #endif
 

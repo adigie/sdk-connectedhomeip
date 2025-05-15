@@ -36,7 +36,7 @@
 #include <sys/time.h>
 #endif // CHIP_SYSTEM_CONFIG_USE_POSIX_TIME_FUNCTS || CHIP_SYSTEM_CONFIG_USE_POSIX_SOCKETS
 
-#if CHIP_SYSTEM_CONFIG_USE_ZEPHYR_SOCKETS
+#if CHIP_SYSTEM_CONFIG_USE_ZEPHYR_SOCKETS || 1
 #include <inet/ZephyrSocket.h> // nogncheck
 #endif
 
@@ -367,7 +367,7 @@ public:
 
 } // namespace Internal
 
-#if CHIP_SYSTEM_CONFIG_USE_POSIX_TIME_FUNCTS || CHIP_SYSTEM_CONFIG_USE_SOCKETS
+#if CHIP_SYSTEM_CONFIG_USE_POSIX_TIME_FUNCTS || CHIP_SYSTEM_CONFIG_USE_SOCKETS || 1
 Microseconds64 TimevalToMicroseconds(const timeval & in);
 void ToTimeval(Microseconds64 in, timeval & out);
 #endif // CHIP_SYSTEM_CONFIG_USE_POSIX_TIME_FUNCTS || CHIP_SYSTEM_CONFIG_USE_SOCKETS
