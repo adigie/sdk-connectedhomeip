@@ -267,9 +267,6 @@ config NRF_WIFI_FW_PATCH_DFU
 # OpenThread L2 configuration
 # ==============================================================================
 
-config NET_L2_OPENTHREAD
-    default y if !WIFI_NRF70
-
 if NET_L2_OPENTHREAD
 
 # Increase the default RX stack size
