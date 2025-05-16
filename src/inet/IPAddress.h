@@ -65,7 +65,7 @@
 #include <sys/socket.h>
 #endif // CHIP_SYSTEM_CONFIG_USE_POSIX_SOCKETS
 
-#if CHIP_SYSTEM_CONFIG_USE_ZEPHYR_SOCKETS
+#if CHIP_SYSTEM_CONFIG_USE_ZEPHYR_SOCKETS && !CHIP_SYSTEM_CONFIG_USE_OPEN_THREAD_ENDPOINT
 #include "ZephyrSocket.h" // nogncheck
 #endif
 
@@ -110,7 +110,7 @@ enum class IPv6MulticastFlag : uint8_t
 };
 using IPv6MulticastFlags = BitFlags<IPv6MulticastFlag>;
 
-#if CHIP_SYSTEM_CONFIG_USE_SOCKETS
+#if CHIP_SYSTEM_CONFIG_USE_SOCKETS && !CHIP_SYSTEM_CONFIG_USE_OPEN_THREAD_ENDPOINT
 /**
  * SockAddr should be used when calling any API that returns (by copying into
  * it) a sockaddr, because that will need enough storage that it can hold data
@@ -139,7 +139,7 @@ union SockAddrWithoutStorage
     sockaddr_in in;
     sockaddr_in6 in6;
 };
-#endif // CHIP_SYSTEM_CONFIG_USE_SOCKETS
+#endif // CHIP_SYSTEM_CONFIG_USE_SOCKETS && !CHIP_SYSTEM_CONFIG_USE_OPEN_THREAD_ENDPOINT
 
 /**
  * @brief   Internet protocol address
@@ -160,7 +160,7 @@ public:
 #endif // CHIP_SYSTEM_CONFIG_USE_LWIP
 #if (CHIP_SYSTEM_CONFIG_USE_SOCKETS || CHIP_SYSTEM_CONFIG_USE_NETWORK_FRAMEWORK) && !CHIP_SYSTEM_CONFIG_USE_OPEN_THREAD_ENDPOINT
     static constexpr uint16_t kMaxStringLength = INET6_ADDRSTRLEN;
-#endif // CHIP_SYSTEM_CONFIG_USE_SOCKETS || CHIP_SYSTEM_CONFIG_USE_NETWORK_FRAMEWORK
+#endif // CHIP_SYSTEM_CONFIG_USE_SOCKETS || CHIP_SYSTEM_CONFIG_USE_NETWORK_FRAMEWORK && !CHIP_SYSTEM_CONFIG_USE_OPEN_THREAD_ENDPOINT
 
 #if CHIP_SYSTEM_CONFIG_USE_OPEN_THREAD_ENDPOINT
 #ifndef INET6_ADDRSTRLEN
