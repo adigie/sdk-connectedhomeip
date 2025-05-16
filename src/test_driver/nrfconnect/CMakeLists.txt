@@ -36,6 +36,7 @@ include_directories(AFTER ${CMAKE_CURRENT_SOURCE_DIR}/main/include)
 # Setup CHIP build
 # ==================================================
 
+#TODO: this does not work
 set(CHIP_CFLAGS
     -DCHIP_SYSTEM_CONFIG_USE_POSIX_TIME_FUNCTS=1
     -DCHIP_SYSTEM_CONFIG_USE_ZEPHYR_SOCKET_EXTENSIONS=0

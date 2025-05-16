@@ -17,15 +17,14 @@
 
 #include <platform/internal/CHIPDeviceLayerInternal.h>
 
-#if CHIP_SYSTEM_CONFIG_USE_POSIX_SOCKETS || CHIP_SYSTEM_CONFIG_USE_ZEPHYR_SOCKETS
+#if CHIP_SYSTEM_CONFIG_USE_OPEN_THREAD_ENDPOINT
+#include <inet/UDPEndPointImplOpenThread.h>
+using UDPEndPointImpl = chip::Inet::UDPEndPointImplOT;
+#elif CHIP_SYSTEM_CONFIG_USE_POSIX_SOCKETS || CHIP_SYSTEM_CONFIG_USE_ZEPHYR_SOCKETS
 #include <inet/UDPEndPointImplSockets.h>
 using UDPEndPointImpl = chip::Inet::UDPEndPointImplSockets;
 #endif
 
-#if CHIP_SYSTEM_CONFIG_USE_OPEN_THREAD_ENDPOINT
-#include <inet/UDPEndPointImplOpenThread.h>
-using UDPEndPointImpl = chip::Inet::UDPEndPointImplOT;
-#endif
 
 #include <lib/support/CodeUtils.h>
 #include <lib/support/logging/CHIPLogging.h>
