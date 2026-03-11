@@ -29,6 +29,8 @@
 
 // ==================== General Platform Adaptations ====================
 
+#define CHIP_CONFIG_SECURITY_TEST_MODE 1
+
 #define CHIP_CONFIG_ABORT() abort()
 
 #define CHIP_CONFIG_PERSISTED_STORAGE_KEY_TYPE const char *
