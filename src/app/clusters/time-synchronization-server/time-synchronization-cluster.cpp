@@ -255,6 +255,7 @@ TimeSynchronizationServer::TimeSynchronizationServer() :
 
 void TimeSynchronizationServer::AttemptToGetFallbackNTPTimeFromDelegate()
 {
+    ChipLogError(Zcl, "******** AG: TimeSynchronizationServer::AttemptToGetFallbackNTPTimeFromDelegate");
     // Sent as a char-string to the delegate so they can read it easily
     char defaultNTP[kMaxDefaultNTPSize];
     MutableCharSpan span(defaultNTP);
@@ -277,6 +278,8 @@ void TimeSynchronizationServer::AttemptToGetFallbackNTPTimeFromDelegate()
 #if TIME_SYNC_ENABLE_TSC_FEATURE
 void TimeSynchronizationServer::OnDeviceConnectedFn(Messaging::ExchangeManager & exchangeMgr, const SessionHandle & sessionHandle)
 {
+
+    ChipLogError(Zcl, "******** AG: TimeSynchronizationServer::OnDeviceConnectedFn");
     // Connected to our trusted time source, let's read the time.
     AttributePathParams readPaths[2];
     readPaths[0] = AttributePathParams(kRootEndpointId, Id, Attributes::UTCTime::Id);
@@ -290,6 +293,7 @@ void TimeSynchronizationServer::OnDeviceConnectedFn(Messaging::ExchangeManager &
     auto readInfo = Platform::MakeUnique<TimeReadInfo>(engine, &exchangeMgr, *this, ReadClient::InteractionType::Read);
     if (readInfo == nullptr)
     {
+        ChipLogError(Zcl, "******** AG: TimeSynchronizationServer::OnDeviceConnectedFn - Failed to allocate TimeReadInfo");
         // This is unlikely to work if we don't have memory, but let's try
         OnDeviceConnectionFailureFn();
         return;
@@ -297,6 +301,8 @@ void TimeSynchronizationServer::OnDeviceConnectedFn(Messaging::ExchangeManager &
     CHIP_ERROR err = readInfo->readClient.SendRequest(readParams);
     if (err != CHIP_NO_ERROR)
     {
+        ChipLogError(Zcl, "******** AG: TimeSynchronizationServer::OnDeviceConnectedFn - Failed to send read request: error %d",
+                     err.AsInteger());
         ChipLogError(Zcl, "Failed to read UTC time from trusted source");
         OnDeviceConnectionFailureFn();
         return;
@@ -306,6 +312,7 @@ void TimeSynchronizationServer::OnDeviceConnectedFn(Messaging::ExchangeManager &
 
 void TimeSynchronizationServer::OnDeviceConnectionFailureFn()
 {
+    ChipLogError(Zcl, "******** AG: TimeSynchronizationServer::OnDeviceConnectionFailureFn");
     // No way to read from the TrustedTimeSource, fall back to default NTP
     AttemptToGetFallbackNTPTimeFromDelegate();
 }
@@ -313,8 +320,10 @@ void TimeSynchronizationServer::OnDeviceConnectionFailureFn()
 void TimeSynchronizationServer::OnAttributeData(const ConcreteDataAttributePath & aPath, TLV::TLVReader * apData,
                                                 const StatusIB & aStatus)
 {
+    ChipLogError(Zcl, "******** AG: TimeSynchronizationServer::OnAttributeData");
     if (aPath.mClusterId != Id || aStatus.IsFailure())
     {
+        ChipLogError(Zcl, "******** AG: TimeSynchronizationServer::OnAttributeData");
         return;
     }
     switch (aPath.mAttributeId)
@@ -322,12 +331,16 @@ void TimeSynchronizationServer::OnAttributeData(const ConcreteDataAttributePath 
     case Attributes::UTCTime::Id:
         if (DataModel::Decode(*apData, mTimeReadInfo->utcTime) != CHIP_NO_ERROR)
         {
+
+            ChipLogError(Zcl, "******** AG: TimeSynchronizationServer::OnAttributeData failed to decode UTCTime");
             mTimeReadInfo->utcTime.SetNull();
         }
         break;
     case Attributes::Granularity::Id:
         if (DataModel::Decode(*apData, mTimeReadInfo->granularity) != CHIP_NO_ERROR)
         {
+
+            ChipLogError(Zcl, "******** AG: TimeSynchronizationServer::OnAttributeData failed to decode UTCTime");
             mTimeReadInfo->granularity = GranularityEnum::kNoTimeGranularity;
         }
         break;
@@ -338,6 +351,7 @@ void TimeSynchronizationServer::OnAttributeData(const ConcreteDataAttributePath 
 
 void TimeSynchronizationServer::OnDone(ReadClient * apReadClient)
 {
+    ChipLogError(Zcl, "******** AG: TimeSynchronizationServer::OnDone");
     if (!mTimeReadInfo->utcTime.IsNull() && mTimeReadInfo->granularity != GranularityEnum::kNoTimeGranularity)
     {
         GranularityEnum ourGranularity;
@@ -357,10 +371,13 @@ void TimeSynchronizationServer::OnDone(ReadClient * apReadClient)
             SetUTCTime(kRootEndpointId, mTimeReadInfo->utcTime.Value(), ourGranularity, TimeSourceEnum::kNodeTimeCluster);
         if (err == CHIP_NO_ERROR)
         {
+            ChipLogError(Zcl, "******** AG: TimeSynchronizationServer::OnDone set time successfully");
             mTimeReadInfo = nullptr;
             return;
         }
     }
+
+    ChipLogError(Zcl, "******** AG: TimeSynchronizationServer::OnDone failed");
     // We get here if we didn't get a time, or failed to set the time source
     // If we failed to set the UTC time, it doesn't hurt to try the backup - NTP system might have different permissions on the
     // system clock
@@ -409,6 +426,7 @@ void TimeSynchronizationServer::OnFallbackNTPCompletionFn(bool timeSyncSuccessfu
 
 CHIP_ERROR TimeSynchronizationServer::AttemptToGetTimeFromTrustedNode()
 {
+    ChipLogError(Zcl, "******** AG: TimeSynchronizationServer::AttemptToGetTimeFromTrustedNode");
 #if TIME_SYNC_ENABLE_TSC_FEATURE
     if (!mTrustedTimeSource.IsNull())
     {
@@ -417,6 +435,7 @@ CHIP_ERROR TimeSynchronizationServer::AttemptToGetTimeFromTrustedNode()
         caseSessionManager->FindOrEstablishSession(nodeId, &mOnDeviceConnectedCallback, &mOnDeviceConnectionFailureCallback);
         return CHIP_NO_ERROR;
     }
+    ChipLogError(Zcl, "******** AG: TimeSynchronizationServer::AttemptToGetTimeFromTrustedNode - mTrustedTimeSource is null");
     return CHIP_ERROR_NOT_FOUND;
 #else
     return CHIP_ERROR_NOT_IMPLEMENTED;
@@ -425,15 +444,23 @@ CHIP_ERROR TimeSynchronizationServer::AttemptToGetTimeFromTrustedNode()
 
 void TimeSynchronizationServer::AttemptToGetTime()
 {
+    ChipLogError(Zcl, "******** AG: TimeSynchronizationServer::AttemptToGetTime");
     // Let's check the delegate and see if can get us a time. Even if the time is already set, we want to ask the delegate so we can
     // set the time source as appropriate.
     CHIP_ERROR err = GetDelegate()->UpdateTimeFromPlatformSource(&mOnTimeSyncCompletion);
     if (err != CHIP_NO_ERROR)
     {
+        ChipLogError(
+            Zcl,
+            "******** AG: TimeSynchronizationServer::AttemptToGetTime - GetDelegate()->UpdateTimeFromPlatformSource failed: %d",
+            err.AsInteger());
         err = AttemptToGetTimeFromTrustedNode();
     }
     if (err != CHIP_NO_ERROR)
     {
+        ChipLogError(
+            Zcl, "******** AG: TimeSynchronizationServer::AttemptToGetTime - AttemptToGetFallbackNTPTimeFromDelegate failed: %d",
+            err.AsInteger());
         AttemptToGetFallbackNTPTimeFromDelegate();
     }
 }
@@ -481,8 +508,11 @@ void TimeSynchronizationServer::OnPlatformEventFn(const DeviceLayer::ChipDeviceE
     switch (event.Type)
     {
     case DeviceEventType::kServerReady:
+        ChipLogError(Zcl, "******** AG: TimeSynchronizationServer::OnPlatformEventFn - kServerReady - mGranularity: %d",
+                     mGranularity);
         if (mGranularity == GranularityEnum::kNoTimeGranularity)
         {
+            ChipLogError(Zcl, "******** AG: TimeSynchronizationServer::OnPlatformEventFn - kServerReady - AttemptToGetTime");
             AttemptToGetTime();
         }
         break;
@@ -493,6 +523,7 @@ void TimeSynchronizationServer::OnPlatformEventFn(const DeviceLayer::ChipDeviceE
 
 CHIP_ERROR TimeSynchronizationServer::SetTrustedTimeSource(const DataModel::Nullable<Structs::TrustedTimeSourceStruct::Type> & tts)
 {
+    ChipLogError(Zcl, "******** AG: TimeSynchronizationServer::SetTrustedTimeSource");
     CHIP_ERROR err     = CHIP_NO_ERROR;
     mTrustedTimeSource = tts;
     if (!mTrustedTimeSource.IsNull())
@@ -503,8 +534,10 @@ CHIP_ERROR TimeSynchronizationServer::SetTrustedTimeSource(const DataModel::Null
     {
         err = mTimeSyncDataProvider.ClearTrustedTimeSource();
     }
+    ChipLogError(Zcl, "******** AG: TimeSynchronizationServer::SetTrustedTimeSource - mGranularity: %d", mGranularity);
     if (mGranularity == GranularityEnum::kNoTimeGranularity)
     {
+        ChipLogError(Zcl, "******** AG: TimeSynchronizationServer::SetTrustedTimeSource - AttemptToGetTime");
         AttemptToGetTime();
     }
     GetDelegate()->TrustedTimeSourceAvailabilityChanged(!mTrustedTimeSource.IsNull(), mGranularity);
